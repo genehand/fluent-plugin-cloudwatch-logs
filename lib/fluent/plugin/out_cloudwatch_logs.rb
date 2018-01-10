@@ -32,7 +32,6 @@ module Fluent
     config_param :concurrency, :integer, default: 1
     config_param :instance_profile_credentials, :bool, default: false
     config_param :instance_profile_credentials_retries, :integer, default: nil
-    end
 
     MAX_EVENTS_SIZE = 1_048_576
     MAX_EVENT_SIZE = 256 * 1024
@@ -69,8 +68,9 @@ module Fluent
 
       options = {}
       if @instance_profile_credentials
-        options[:retries] = @instance_profile_credentials_retries if @instance_profile_credentials_retries
-        options[:credentials] = Aws::InstanceProfileCredentials.new(options)
+        credentials_options[:retries] = @instance_profile_credentials_retries if @instance_profile_credentials_retries
+        credentials_options[:http_debug_output] = $stdout
+        options[:credentials] = Aws::InstanceProfileCredentials.new(credentials_options)
       else
         options[:credentials] = Aws::Credentials.new(@aws_key_id, @aws_sec_key) if @aws_key_id && @aws_sec_key
       end
