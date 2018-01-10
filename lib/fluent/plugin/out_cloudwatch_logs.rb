@@ -30,6 +30,9 @@ module Fluent
     config_param :put_log_events_retry_limit, :integer, default: 17
     config_param :put_log_events_disable_retry_limit, :bool, default: false
     config_param :concurrency, :integer, default: 1
+    config_param :instance_profile_credentials, :bool, default: false
+    config_param :instance_profile_credentials_retries, :integer, default: nil
+    end
 
     MAX_EVENTS_SIZE = 1_048_576
     MAX_EVENT_SIZE = 256 * 1024
@@ -65,7 +68,13 @@ module Fluent
       super
 
       options = {}
-      options[:credentials] = Aws::Credentials.new(@aws_key_id, @aws_sec_key) if @aws_key_id && @aws_sec_key
+      if @instance_profile_credentials
+        options[:retries] = @instance_profile_credentials_retries if @instance_profile_credentials_retries
+        options[:credentials] = Aws::InstanceProfileCredentials.new(options)
+      else
+        options[:credentials] = Aws::Credentials.new(@aws_key_id, @aws_sec_key) if @aws_key_id && @aws_sec_key
+      end
+
       options[:region] = @region if @region
       options[:http_proxy] = @http_proxy if @http_proxy
       @logs ||= Aws::CloudWatchLogs::Client.new(options)
@@ -200,7 +209,7 @@ module Fluent
     end
 
     def store_next_sequence_token(group_name, stream_name, token)
-      @store_next_sequence_token_mutex.synchronize do 
+      @store_next_sequence_token_mutex.synchronize do
         @sequence_tokens[group_name][stream_name] = token
       end
     end

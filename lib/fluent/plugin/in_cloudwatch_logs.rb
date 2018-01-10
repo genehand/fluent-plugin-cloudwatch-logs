@@ -27,6 +27,9 @@ module Fluent
     config_param :state_file, :string
     config_param :fetch_interval, :time, default: 60
     config_param :http_proxy, :string, default: nil
+    config_param :instance_profile_credentials, :bool, default: false
+    config_param :instance_profile_credentials_retries, :integer, default: nil
+    end
 
     def initialize
       super
@@ -54,6 +57,9 @@ module Fluent
           role_arn: @aws_sts_role_arn,
           role_session_name: @aws_sts_session_name
         )
+      elsif @instance_profile_credentials
+        credentials_options[:retries] = @instance_profile_credentials_retries if @instance_profile_credentials_retries
+        options[:credentials] = Aws::InstanceProfileCredentials.new(credentials_options)
       else
         options[:credentials] = Aws::Credentials.new(@aws_key_id, @aws_sec_key) if @aws_key_id && @aws_sec_key
       end
