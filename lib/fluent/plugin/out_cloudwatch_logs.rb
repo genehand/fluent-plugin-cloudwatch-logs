@@ -67,6 +67,7 @@ module Fluent
       super
 
       options = {}
+      credentials_options = {}
       if @instance_profile_credentials
         credentials_options[:retries] = @instance_profile_credentials_retries if @instance_profile_credentials_retries
         credentials_options[:http_debug_output] = $stdout

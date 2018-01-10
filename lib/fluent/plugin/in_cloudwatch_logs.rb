@@ -47,6 +47,7 @@ module Fluent
 
     def start
       options = {}
+      credentials_options = {}
       options[:region] = @region if @region
       options[:http_proxy] = @http_proxy if @http_proxy
 
